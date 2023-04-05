@@ -106,11 +106,10 @@ public class SocksServiceImpl implements SocksService {
     @Override
     public List<Socks> getQuantitySocksMinCotton(Integer size, String colors, Integer cotton) {
 
-        List<Socks> collect = socksList.stream()
+        return socksList.stream()
                 .filter(socks -> socks.getSize().size.equals(size) && socks.getCottonPart() >= cotton)
                 .filter(socks -> socks.getColor().color.equals(colors))
                 .collect(Collectors.toList());
-        return collect;
 
     }
 
