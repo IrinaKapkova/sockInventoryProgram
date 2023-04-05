@@ -63,7 +63,7 @@ public class SocksServiceImpl implements SocksService {
         if (!collect.isEmpty()) {
             collect.stream()
                     .peek(socks5 -> socks5.setQuantity(socks5.getQuantity() - quantity))
-                    .collect(Collectors.toUnmodifiableList());
+                    .toList();
             saveToFile();
         }
         return collect;
