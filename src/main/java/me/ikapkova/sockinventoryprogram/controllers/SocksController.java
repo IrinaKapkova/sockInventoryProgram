@@ -3,7 +3,6 @@ package me.ikapkova.sockinventoryprogram.controllers;
 import java.util.Collection;
 import java.util.List;
 import me.ikapkova.sockinventoryprogram.model.Socks;
-import me.ikapkova.sockinventoryprogram.model.SocksSize;
 import me.ikapkova.sockinventoryprogram.services.SocksService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
