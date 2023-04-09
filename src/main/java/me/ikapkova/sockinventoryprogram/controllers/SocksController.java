@@ -3,6 +3,7 @@ package me.ikapkova.sockinventoryprogram.controllers;
 import java.util.Collection;
 import java.util.List;
 import me.ikapkova.sockinventoryprogram.model.Socks;
+import me.ikapkova.sockinventoryprogram.model.SocksSize;
 import me.ikapkova.sockinventoryprogram.services.SocksService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -31,60 +32,66 @@ public class SocksController {
 
 
     @PostMapping("/add")
-    @Operation(summary = "Приход товара на склад", description = "необходимо указать следующие показатели партии носков: размер, " +
-            "цвет, процент содержания хлопка в материале, количество пар приходуемых на склад")
+    @Operation(summary = "Приход товара на склад", description = "необходимо указать следующие показатели партии носков: " +
+            "размер один из возможных вариантов: 35,36,37,38, 39, 40 or 41 " +
+            "цвет один из списка: GREEN, RED, WHITE, BLACK, YELLOW, BLUE, MULTICOLORED," +
+            " процент содержания хлопка в материале: целое число от 0 до 100, " +
+            " количество пар приходуемых на склад")
     public ResponseEntity<Socks> addSocks(@RequestBody Socks socks) {
         Socks socks1 = socksService.addSocks(socks);
         return new ResponseEntity<>(socks1, HttpStatus.CREATED);
     }
 
     @PutMapping("/shift")
-    @Operation(summary = "Перемещение товара на склад", description = "вводим данные: размер, цвет, процент содержания хлопка в материале, количество пар")
-    public ResponseEntity<List<Socks>> moveSocks(@RequestParam(name = "Размер:") Integer size1,
-                                                 @RequestParam(name = "Цвет:") String colors1,
-                                                 @RequestParam(name = "Содержание хлопка в %:") Integer cotton1,
-                                                 @RequestParam(name = "Количество пар") Integer quantity1) {
-        List<Socks> socksList = socksService.moveSocks(size1, colors1, cotton1, quantity1);
+    @Operation(summary = "Перемещение товара на склад", description = "Вводим данные: размер, цвет, процент содержания хлопка в материале, количество пар")
+    public ResponseEntity<List<Socks>> moveSocks(@RequestParam(name = "size") @Parameter(description = "Размер", example = "35,36,37,38, 39, 40 or 41") Integer size,
+                                                 @RequestParam(name = "color") @Parameter(description = "Цвет", example = "GREEN, RED, WHITE, BLACK, YELLOW, BLUE or MULTICOLORED") String colors,
+                                                 @RequestParam(name = "cottonPart") @Parameter(description = "процент содержания хлопка", example = "от 0 до 100")Integer cotton,
+                                                 @RequestParam(name = "quantity") @Parameter(description = "Количество пар")Integer quantity)
+
+    {
+        List<Socks> socksList = socksService.moveSocks(size, colors, cotton, quantity);
         return new ResponseEntity<>(socksList, HttpStatus.CREATED);
     }
 
 
     @GetMapping("/minCotton")
-    @Operation(summary = "Поиск нужного товара", description = "вводим необходимые данные: размер, цвет, процент содержания хлопка в материале")
-    public ResponseEntity<Object> getQuantitySocksMin(@RequestParam(name = "Размер: ") @Parameter(description = " от 36 до 40") Integer size,
-                                                      @RequestParam(name = "Цвет:") @Parameter(description = "белый, черный, розовый, голубой, красный, разноцветный") String colors,
-                                                      @RequestParam(name = "Содержание хлопка в % min") @Parameter(description = "от 0 до 100") Integer cotton) {
+    @Operation(summary = "Поиск нужного товара", description = "Вводим необходимые данные: размер, цвет, процент содержания хлопка в материале")
+    public ResponseEntity<Object> getQuantitySocksMin(@RequestParam(name = "size") @Parameter(description = "Размер", example = "35,36,37,38, 39, 40 or 41") Integer size,
+                                                      @RequestParam(name = "color") @Parameter(description = "Цвет один из зеленый, красный, белый, черный, желтый, синий или разноцветный", example = "GREEN, RED, WHITE, BLACK, YELLOW, BLUE or MULTICOLORED")  String colors,
+                                                      @RequestParam(name = "cottonPartMin%") @Parameter(description = "Содержание хлопка в % min: от 0 до 100") Integer cotton) {
         List<Socks> list = socksService.getQuantitySocksMinCotton(size, colors, cotton);
         return new ResponseEntity<>(list, HttpStatus.CREATED);
     }
 
     @GetMapping("/maxCotton")
     @Operation(summary = "Поиск нужного товара", description = "вводим необходимые данные: размер, цвет, процент содержания хлопка в материале")
-    public ResponseEntity<Object> getQuantitySocksMax(@RequestParam(name = "Размер: ") @Parameter(description = " от 35 до 41") Integer size,
-                                                      @RequestParam(name = "Цвет:") @Parameter(description = "GREEN, RED, WHITE, BLACK, YELLOW, BLUE, MULTICOLORED") String colors,
-                                                      @RequestParam(name = "max содержание хлопка в материале % ") @Parameter(description = "от 0 до 100") Integer cotton) {
+    public ResponseEntity<Object> getQuantitySocksMax(@RequestParam(name = "size") @Parameter(description = "Размер", example = "35,36,37,38, 39, 40 or 41") Integer size,
+                                                      @RequestParam(name = "color") @Parameter(description = "Цвет один из зеленый, красный, белый, черный, желтый, синий или разноцветный", example = "GREEN, RED, WHITE, BLACK, YELLOW, BLUE or MULTICOLORED")  String colors,
+                                                      @RequestParam(name = "cottonPartMax%") @Parameter(description = "Содержание хлопка в % max: от 0 до 100") Integer cotton) {
         List<Socks> list1 = socksService.getQuantitySocksMaxCotton(size, colors, cotton);
         return new ResponseEntity<>(list1, HttpStatus.CREATED);
     }
 
     @GetMapping("/total")
     @Operation(summary = "Общее количество пар носков на складе по указанным параметрам", description = "Укажите размер, цвет, процент содержания хлопка")
-    public ResponseEntity<Object> getQuantityTotal(@RequestParam(name = "Размер: ") @Parameter(description = " от 35 до 41") Integer size,
-                                                   @RequestParam(name = "Цвет:") @Parameter(description = "GREEN, RED, WHITE, BLACK, YELLOW, BLUE, MULTICOLORED") String colors,
-                                                   @RequestParam(name = "cottonPart") @Parameter(description = "от 0 до 100") Integer cottonPart) {
+    public ResponseEntity<Object> getQuantityTotal(@RequestParam(name = "size") @Parameter(description = "Размер", example = "35,36,37,38, 39, 40 or 41") Integer size,
+                                                   @RequestParam(name = "color") @Parameter(description = "Цвет", example = "GREEN, RED, WHITE, BLACK, YELLOW, BLUE or MULTICOLORED") String colors,
+                                                   @RequestParam(name = "cottonPart") @Parameter(description = "процент содержания хлопка", example = "от 0 до 100")Integer cottonPart) {
         Integer total = socksService.getQuantitySocksSize(size, colors, cottonPart);
         return new ResponseEntity<>(total, HttpStatus.CREATED);
     }
 
     @DeleteMapping("/defect")
-    @Operation(summary = "Удаление брака", description = "введите: размер, цвет, процент содержания хлопка в материале, количество пар списываемого товара")
-    public ResponseEntity<List<Socks>> deleteSocks(@RequestParam(name = "Размер:") Integer size1,
-                                                   @RequestParam(name = "Цвет") String colors1,
-                                                   @RequestParam(name = "процент содержания хлопка") Integer cotton1,
-                                                   @RequestParam(name = "Количество товара") Integer quantity1) {
-        List<Socks> socksList = socksService.deleteSocks(size1, colors1, cotton1, quantity1);
-        return new ResponseEntity<>(socksList, HttpStatus.CREATED);
+    @Operation(summary = "Списание бракованных носков со склада", description = "введите: размер, цвет, процент содержания хлопка в материале, количество пар списываемого товара")
+    public ResponseEntity<List<Socks>> deleteSocks(@RequestParam(name = "size") @Parameter(description = "Размер", example = "35,36,37,38, 39, 40 or 41") Integer size,
+                                                   @RequestParam(name = "color") @Parameter(description = "Цвет", example = "GREEN, RED, WHITE, BLACK, YELLOW, BLUE or MULTICOLORED") String colors,
+                                                   @RequestParam(name = "cottonPart") @Parameter(description = "процент содержания хлопка", example = "от 0 до 100")Integer cotton,
+                                                   @RequestParam(name = "quantity") @Parameter(description = "Количество пар")Integer quantity) {
+        List<Socks> socksList = socksService.deleteSocks(size, colors, cotton, quantity);
+        return new ResponseEntity<>(socksList, HttpStatus.OK);
     }
+
 
     @GetMapping("/checklist")
     @Operation(summary = "Полный список носков на складе",

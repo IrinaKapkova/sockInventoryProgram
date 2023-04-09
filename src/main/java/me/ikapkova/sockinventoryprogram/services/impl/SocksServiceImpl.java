@@ -1,16 +1,14 @@
 package me.ikapkova.sockinventoryprogram.services.impl;
 
 import me.ikapkova.sockinventoryprogram.exception.FileProcessingException;
+import me.ikapkova.sockinventoryprogram.exception.ProductNotFoundException;
 import me.ikapkova.sockinventoryprogram.model.Socks;
 import me.ikapkova.sockinventoryprogram.services.FilesService;
 import me.ikapkova.sockinventoryprogram.services.SocksService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import org.springframework.stereotype.Service;
-
-import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.io.Writer;
 import java.nio.file.Files;
@@ -34,11 +32,15 @@ public class SocksServiceImpl implements SocksService {
     @Override
     public Socks addSocks(Socks socks) {
         if (socks.getSize() != null && socks.getColor() != null && socks.getCottonPart() > 0) {
-
+//Мне кажется, проверки лучше сделать в контроллере, чтобы он занимался проверкой аргументов
             List<Socks> collect = socksList.stream()
+                    //При правильной работе у тебя будет всегда один объект в коллекции, в таком случае не нужно тут делать коллекцию
                     .filter(socks1 -> (socks.getSize().size.equals(socks1.getSize().size)) && (socks.getCottonPart().equals(socks1.getCottonPart()))
                             && (socks.getColor().color.equals(socks1.getColor().color))).distinct().toList();
-            if (!collect.isEmpty()) {
+            if (!collect.isEmpty())
+            // Так как коллекция не нужна, тогда нужно переписать этот код
+
+            {
                 collect.stream()
                         .peek(socks1 -> socks1.setQuantity(socks.getQuantity() + socks1.getQuantity()))
                         .collect(Collectors.toList());
@@ -68,6 +70,7 @@ public class SocksServiceImpl implements SocksService {
         }
         return collect;
     }
+//Вообще метод peek не рекомендуется использовать, тут как будто проще использовать обычный цикл, чем несколько раз делать стримы
 
 
     @Override
@@ -94,14 +97,6 @@ public class SocksServiceImpl implements SocksService {
 
     }
 
-    @PostConstruct
-    private void init() {
-//        try {
-//            readFromFile();
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-    }
 
     @Override
     public List<Socks> getQuantitySocksMinCotton(Integer size, String colors, Integer cotton) {
@@ -125,21 +120,34 @@ public class SocksServiceImpl implements SocksService {
 
     @Override
     public Integer getQuantitySocksSize(Integer size, String colors, Integer cotton) {
-        return socksList.stream()
-                .filter(socks -> socks.getSize().size.equals(size) && socks.getCottonPart() >= cotton && socks.getColor().color.equals(colors))
-                .map(Socks::getQuantity)
-                .reduce(Integer::sum)
-                .get();
+        for (Socks socks : socksList) {
+            if (socks.getColor().equals(colors) &&
+                    socks.getSize().equals(size) &&
+                    socks.getCottonPart() > cotton) {
+                return socks.getQuantity();
+            } else if (!socksList.iterator().hasNext()) {
+                throw new ProductNotFoundException("Товар с данными параметрами не найден");
+            }
+        }
+        return null;
     }
+
 
     @Override
     public Path createSocks() throws IOException {
 
-        Path path = filesService.createTempFile("recipesBook");
+        Path path = filesService.createTempFile("allSocks");
         for (Socks socks : socksList) {
             try (Writer writer = Files.newBufferedWriter(path, StandardOpenOption.APPEND)) {
-                writer.append("\nРазмер " + "'").append(String.valueOf(socks.getSize())).append("'").append(",\tцвет - ").append(socks.getColor().color).append(", \tсостав: хлопок - ").append(String.valueOf(socks.getCottonPart())).append("%").append(", \tкол-во: ").append(String.valueOf(socks.getQuantity())).append(" шт.");
-
+                writer.append("\nРазмер " + "'")
+                        .append(String.valueOf(socks.getSize()))
+                        .append("'").append(",\tцвет - ")
+                        .append(socks.getColor().color)
+                        .append(", \tсостав: хлопок - ")
+                        .append(String.valueOf(socks.getCottonPart()))
+                        .append("%").append(", \tкол-во: ")
+                        .append(String.valueOf(socks.getQuantity()))
+                        .append(" шт.");
             }
         }
         return path;
@@ -164,4 +172,13 @@ public class SocksServiceImpl implements SocksService {
         }
     }
 
+    private void allColors() throws FileProcessingException {
+        String json = filesService.readerFromFile();
+        try {
+            socksList = new ObjectMapper().readValue(json, new TypeReference<LinkedList<Socks>>() {
+            });
+        } catch (JsonProcessingException e) {
+            throw new FileProcessingException("Ошибка при чтении файла");
+        }
+    }
 }
