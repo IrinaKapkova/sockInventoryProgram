@@ -10,6 +10,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
+
 import java.io.IOException;
 import java.io.Writer;
 import java.nio.file.Files;
@@ -29,34 +30,36 @@ public class SocksServiceImpl implements SocksService {
     public SocksServiceImpl(FilesService filesService) {
         this.filesService = filesService;
     }
-private void validateRequest (Socks socks){
-        if (socks.getSize() == null || socks.getColor() == null || socks.getCottonPart() == null){
-            throw new InvalidSockRequestException ("Все поля должны быть заполнены");
+
+    private void validateRequest(Socks socks) {
+        if (socks.getSize() == null || socks.getColor() == null || socks.getCottonPart() == null) {
+            throw new InvalidSockRequestException("Все поля должны быть заполнены");
         }
-    if (socks.getCottonPart() < 0 || socks.getCottonPart() >100) {
-        throw new InvalidSockRequestException("Показатель содержания хлопка должен быть в виде числа от 0 до 100");
+        if (socks.getCottonPart() < 0 || socks.getCottonPart() > 100) {
+            throw new InvalidSockRequestException("Показатель содержания хлопка должен быть в виде числа от 0 до 100");
+        }
+        if (socks.getQuantity() <= 0) {
+            throw new InvalidSockRequestException("Количество должно быть больше 0");
+        }
     }
-    if (socks.getQuantity() <= 0){
-        throw new InvalidSockRequestException("Количество должно быть больше 0");
-    }
-}
+
     @Override
     public Socks addSocks(Socks socks) {
         validateRequest(socks);
         {
 //проверку аргументов  вынесла из метода
             if (!socksList.isEmpty())
-            for (Socks test : socksList) {
-                if (test.getSize().equals(socks.getSize()) && test.getColor().equals(socks.getColor())
-                        && test.getCottonPart() == socks.getCottonPart()) {
-                    test.setQuantity(socks.getQuantity() + test.getQuantity());
-                    socksList.add(socks);
-                    saveToFile();
-                } else {
-                    socksList.add(socks);
-                    saveToFile();
+                for (Socks test : socksList) {
+                    if (test.getSize().equals(socks.getSize()) && test.getColor().equals(socks.getColor())
+                            && test.getCottonPart().equals(socks.getCottonPart())) {
+                        test.setQuantity(socks.getQuantity() + test.getQuantity());
+                        socksList.add(socks);
+                        saveToFile();
+                    } else {
+                        socksList.add(socks);
+                        saveToFile();
+                    }
                 }
-            }
             return socks;
         }
     }
@@ -77,6 +80,7 @@ private void validateRequest (Socks socks){
         }
         return collect;
     }
+
     @Override
     public List<Socks> deleteSocks(Integer size, String colors, Integer cotton, Integer quantity) {
 
