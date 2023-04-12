@@ -1,6 +1,7 @@
 package me.ikapkova.sockinventoryprogram.services.impl;
 
 import me.ikapkova.sockinventoryprogram.exception.FileProcessingException;
+import me.ikapkova.sockinventoryprogram.exception.InvalidSockRequestException;
 import me.ikapkova.sockinventoryprogram.exception.ProductNotFoundException;
 import me.ikapkova.sockinventoryprogram.model.Socks;
 import me.ikapkova.sockinventoryprogram.services.FilesService;
@@ -28,30 +29,36 @@ public class SocksServiceImpl implements SocksService {
     public SocksServiceImpl(FilesService filesService) {
         this.filesService = filesService;
     }
-
+private void validateRequest (Socks socks){
+        if (socks.getSize() == null || socks.getColor() == null || socks.getCottonPart() == null){
+            throw new InvalidSockRequestException ("Все поля должны быть заполнены");
+        }
+    if (socks.getCottonPart() < 0 || socks.getCottonPart() >100) {
+        throw new InvalidSockRequestException("Показатель содержания хлопка должен быть в виде числа от 0 до 100");
+    }
+    if (socks.getQuantity() <= 0){
+        throw new InvalidSockRequestException("Количество должно быть больше 0");
+    }
+}
     @Override
     public Socks addSocks(Socks socks) {
-        if (socks.getSize() != null && socks.getColor() != null && socks.getCottonPart() > 0) {
-//Мне кажется, проверки лучше сделать в контроллере, чтобы он занимался проверкой аргументов
-            List<Socks> collect = socksList.stream()
-                    //При правильной работе у тебя будет всегда один объект в коллекции, в таком случае не нужно тут делать коллекцию
-                    .filter(socks1 -> (socks.getSize().size.equals(socks1.getSize().size)) && (socks.getCottonPart().equals(socks1.getCottonPart()))
-                            && (socks.getColor().color.equals(socks1.getColor().color))).distinct().toList();
-            if (!collect.isEmpty())
-            // Так как коллекция не нужна, тогда нужно переписать этот код
-
-            {
-                collect.stream()
-                        .peek(socks1 -> socks1.setQuantity(socks.getQuantity() + socks1.getQuantity()))
-                        .collect(Collectors.toList());
-                saveToFile();
-            } else {
-                socksList.add(socks);
-                saveToFile();
+        validateRequest(socks);
+        {
+//проверку аргументов  вынесла из метода
+            if (!socksList.isEmpty())
+            for (Socks test : socksList) {
+                if (test.getSize().equals(socks.getSize()) && test.getColor().equals(socks.getColor())
+                        && test.getCottonPart() == socks.getCottonPart()) {
+                    test.setQuantity(socks.getQuantity() + test.getQuantity());
+                    socksList.add(socks);
+                    saveToFile();
+                } else {
+                    socksList.add(socks);
+                    saveToFile();
+                }
             }
+            return socks;
         }
-
-        return socks;
     }
 
     @Override
@@ -70,9 +77,6 @@ public class SocksServiceImpl implements SocksService {
         }
         return collect;
     }
-//Вообще метод peek не рекомендуется использовать, тут как будто проще использовать обычный цикл, чем несколько раз делать стримы
-
-
     @Override
     public List<Socks> deleteSocks(Integer size, String colors, Integer cotton, Integer quantity) {
 
