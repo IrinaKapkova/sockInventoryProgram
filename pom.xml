@@ -14,7 +14,10 @@
     <name>sockInventoryProgram</name>
     <description>sockInventoryProgram</description>
     <properties>
+        <commons-io.version>2.11.0</commons-io.version>
         <java.version>17</java.version>
+        <commons-lang3.version>3.12.0</commons-lang3.version>
+        <springdoc-openapi-ui.version>1.6.14</springdoc-openapi-ui.version>
     </properties>
     <dependencies>
         <dependency>
@@ -38,6 +41,25 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/org.apache.commons/commons-lang3 -->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>${commons-lang3.version}</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/org.springdoc/springdoc-openapi-ui -->
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-ui</artifactId>
+            <version>${springdoc-openapi-ui.version}</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/commons-io/commons-io -->
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>${commons-io.version}</version>
+        </dependency>
+
     </dependencies>
 
     <build>
