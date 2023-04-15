@@ -47,7 +47,6 @@ public class SocksServiceImpl implements SocksService {
     public Socks addSocks(Socks socks) {
         validateRequest(socks);
         {
-//проверку аргументов  вынесла из метода
             if (!socksList.isEmpty())
                 for (Socks test : socksList) {
                     if (test.getSize().equals(socks.getSize()) && test.getColor().equals(socks.getColor())
@@ -61,6 +60,7 @@ public class SocksServiceImpl implements SocksService {
                     }
                 }
             return socks;
+
         }
     }
 
@@ -92,7 +92,7 @@ public class SocksServiceImpl implements SocksService {
         if (!collect.isEmpty()) {
             collect.stream()
                     .peek(socks5 -> socks5.setQuantity(socks5.getQuantity() - quantity))
-                    .collect(Collectors.toUnmodifiableList());
+                    .toList();
             saveToFile();
         }
         return collect;
@@ -128,16 +128,17 @@ public class SocksServiceImpl implements SocksService {
 
     @Override
     public Integer getQuantitySocksSize(Integer size, String colors, Integer cotton) {
+        int sum = 0;
         for (Socks socks : socksList) {
             if (socks.getColor().equals(colors) &&
                     socks.getSize().equals(size) &&
                     socks.getCottonPart() > cotton) {
-                return socks.getQuantity();
+                return sum=sum+socks.getQuantity();
             } else if (!socksList.iterator().hasNext()) {
                 throw new ProductNotFoundException("Товар с данными параметрами не найден");
             }
         }
-        return null;
+        return 0;
     }
 
 
